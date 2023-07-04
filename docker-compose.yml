@@ -1,0 +1,14 @@
+services:
+  remark42:
+    build: .
+    container_name: remark42
+    environment:
+      TZ: America/New_York
+      PUID: 1000
+      PGID: 1000
+      REMARK_URL: http://127.0.0.1:8080
+      SITE: remark
+    ports:
+      - "8080:8080/tcp"
+    volumes:
+      - /mnt/containers/remark42:/mnt/config
