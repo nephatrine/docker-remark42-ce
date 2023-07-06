@@ -70,7 +70,7 @@ jobs:
           username: ${{ gitea.actor }}
           password: ${{ secrets.PACKAGER_TOKEN }}
       - name: Docker Push
-        run: docker push code.nephatrine.net/nephnet/remark42-ce:${{ gitea.ref_name }}-arm64v8
+        run: docker push code.nephatrine.net/nephnet/remark42-ce:${{ gitea.ref_name }}-armv7
       - name: Notify Discord
         uses: actions/discord-status@v1
         if: always()
