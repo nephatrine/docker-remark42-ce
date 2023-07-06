@@ -36,13 +36,13 @@ if [[ ! -z "${SECRET}" ]]; then
     /bin/mkdir -p "${REMARK_WEB_ROOT}"
 	/bin/chown guardian:users "${REMARK_WEB_ROOT}"
   fi
-  if [[ ! -d "${REMARK_WEB_ROOT}" ]]; then
+  if [[ -d "${REMARK_WEB_ROOT}" ]]; then
     /command/s6-setuidgid guardian /bin/cp -R /var/www/remark42/. "${REMARK_WEB_ROOT}/"
   fi
   if [[ -d /mnt/config/www/remark42 ]]; then
     /command/s6-setuidgid guardian /bin/cp -R /mnt/config/www/remark42/. "${REMARK_WEB_ROOT}/"
   fi
-  
+
   if [ -n "${SITE}" ]; then
     sep=','
     case ${SITE} in
