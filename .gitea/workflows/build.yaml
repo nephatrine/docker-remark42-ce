@@ -1,0 +1,177 @@
+name: Build Container Image
+run-name: ${{ gitea.actor }} pushed to ${{ gitea.repository }}:${{ gitea.ref_name }}
+on: [push, workflow_call]
+jobs:
+  build_amd64:
+    if: gitea.repository_owner == 'NephNET' && !contains(github.event.head_commit.message, '#noci')
+    runs-on: nephnet-amd64
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+      - name: Docker Build
+        run: |
+          docker build --pull -t code.nephatrine.net/nephnet/remark42-ce:${{ gitea.ref_name }}-jscache --target builder1 ${{ gitea.workspace }}
+          docker build --pull -t code.nephatrine.net/nephnet/remark42-ce:${{ gitea.ref_name }}-gocache --target builder2 ${{ gitea.workspace }}
+          docker build --pull -t code.nephatrine.net/nephnet/remark42-ce:${{ gitea.ref_name }}-amd64 ${{ gitea.workspace }}
+      - name: Docker Login
+        uses: actions/docker-login@v2
+        with:
+          registry: code.nephatrine.net
+          username: ${{ gitea.actor }}
+          password: ${{ secrets.PACKAGER_TOKEN }}
+      - name: Docker Push
+        run: docker push code.nephatrine.net/nephnet/remark42-ce:${{ gitea.ref_name }}-amd64
+      - name: Notify Discord
+        uses: actions/discord-status@v1
+        if: always()
+        with:
+          title: "Container Build (X86_64)"
+          webhook: ${{ secrets.DISCORD_WEBHOOK_BUILD }}
+  build_arm64:
+    if: gitea.repository_owner == 'NephNET' && !contains(github.event.head_commit.message, '#noci')
+    runs-on: nephnet-arm64
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+      - name: Docker Build
+        run: |
+          docker build --pull -t code.nephatrine.net/nephnet/remark42-ce:${{ gitea.ref_name }}-jscache --target builder1 ${{ gitea.workspace }}
+          docker build --pull -t code.nephatrine.net/nephnet/remark42-ce:${{ gitea.ref_name }}-gocache --target builder2 ${{ gitea.workspace }}
+          docker build --pull -t code.nephatrine.net/nephnet/remark42-ce:${{ gitea.ref_name }}-arm64v8 ${{ gitea.workspace }}
+      - name: Docker Login
+        uses: actions/docker-login@v2
+        with:
+          registry: code.nephatrine.net
+          username: ${{ gitea.actor }}
+          password: ${{ secrets.PACKAGER_TOKEN }}
+      - name: Docker Push
+        run: docker push code.nephatrine.net/nephnet/remark42-ce:${{ gitea.ref_name }}-arm64v8
+      - name: Notify Discord
+        uses: actions/discord-status@v1
+        if: always()
+        with:
+          title: "Container Build (AARCH64)"
+          webhook: ${{ secrets.DISCORD_WEBHOOK_BUILD }}
+  build_armhf:
+    if: gitea.repository_owner == 'NephNET' && !contains(github.event.head_commit.message, '#noci')
+    runs-on: nephnet-armhf
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+      - name: Docker Build
+        run: |
+          docker build --pull -t code.nephatrine.net/nephnet/remark42-ce:${{ gitea.ref_name }}-jscache --target builder1 ${{ gitea.workspace }}
+          docker build --pull -t code.nephatrine.net/nephnet/remark42-ce:${{ gitea.ref_name }}-gocache --target builder2 ${{ gitea.workspace }}
+          docker build --pull -t code.nephatrine.net/nephnet/remark42-ce:${{ gitea.ref_name }}-armv7 ${{ gitea.workspace }}
+      - name: Docker Login
+        uses: actions/docker-login@v2
+        with:
+          registry: code.nephatrine.net
+          username: ${{ gitea.actor }}
+          password: ${{ secrets.PACKAGER_TOKEN }}
+      - name: Docker Push
+        run: docker push code.nephatrine.net/nephnet/remark42-ce:${{ gitea.ref_name }}-arm64v8
+      - name: Notify Discord
+        uses: actions/discord-status@v1
+        if: always()
+        with:
+          title: "Container Build (ARMV7L)"
+          webhook: ${{ secrets.DISCORD_WEBHOOK_BUILD }}
+  build_manifest:
+    needs: [build_amd64, build_arm64, build_armhf]
+    runs-on: nephnet
+    steps:
+      - name: Docker Login
+        uses: actions/docker-login@v2
+        with:
+          registry: code.nephatrine.net
+          username: ${{ gitea.actor }}
+          password: ${{ secrets.PACKAGER_TOKEN }}
+      - name: Docker Manifest
+        run: |
+          docker manifest create code.nephatrine.net/nephnet/remark42-ce:${{ gitea.ref_name }} --amend code.nephatrine.net/nephnet/remark42-ce:${{ gitea.ref_name }}-amd64 --amend code.nephatrine.net/nephnet/remark42-ce:${{ gitea.ref_name }}-arm64v8 --amend code.nephatrine.net/nephnet/remark42-ce:${{ gitea.ref_name }}-armv7
+          docker manifest push --purge code.nephatrine.net/nephnet/remark42-ce:${{ gitea.ref_name }}
+  publish_amd64:
+    if: gitea.ref_name == 'master'
+    needs: [build_amd64]
+    runs-on: nephnet-amd64
+    steps:
+      - name: Check Base Image
+        if: github.event_name != 'push'
+        uses: actions/docker-base-image-check@v1.2.1
+        id: checkbase
+        with:
+          base-image: nephatrine/alpine-s6:latest-amd64
+          image: nephatrine/remark42-ce:latest-amd64
+      - name: Docker Login
+        uses: actions/docker-login@v2
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASS }}
+      - name: Docker Push
+        run: |
+          docker tag code.nephatrine.net/nephnet/remark42-ce:master-amd64 nephatrine/remark42-ce:latest-amd64
+          docker push nephatrine/remark42-ce:latest-amd64
+      - name: Notify Discord
+        if: github.event_name == 'push' || steps.checkbase.outputs.needs-updating == 'true'
+        uses: actions/discord-status@v1
+        with:
+          title: "DockerHub: remark42-ce"
+          description: "The container image was pushed to [DockerHub](https://hub.docker.com/repository/docker/nephatrine/remark42-ce/general).\nPull `nephatrine/remark42-ce:latest-amd64` for the newest image."
+          nodetail: true
+          webhook: ${{ secrets.DISCORD_WEBHOOK_PACKAGE }}
+  publish_arm64:
+    if: gitea.ref_name == 'master'
+    needs: [build_arm64]
+    runs-on: nephnet-arm64
+    steps:
+      - name: Docker Login
+        uses: actions/docker-login@v2
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASS }}
+      - name: Docker Push
+        run: |
+          docker tag code.nephatrine.net/nephnet/remark42-ce:master-arm64v8 nephatrine/remark42-ce:latest-arm64v8
+          docker push nephatrine/remark42-ce:latest-arm64v8
+  publish_armhf:
+    if: gitea.ref_name == 'master'
+    needs: [build_armhf]
+    runs-on: nephnet-armhf
+    steps:
+      - name: Docker Login
+        uses: actions/docker-login@v2
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASS }}
+      - name: Docker Push
+        run: |
+          docker tag code.nephatrine.net/nephnet/remark42-ce:master-armv7 nephatrine/remark42-ce:latest-armv7
+          docker push nephatrine/remark42-ce:latest-armv7
+  publish_manifest:
+    needs: [publish_amd64, publish_arm64, publish_armhf]
+    runs-on: nephnet
+    steps:
+      - name: Docker Login
+        uses: actions/docker-login@v2
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASS }}
+      - name: Docker Manifest
+        run: |
+          docker manifest create nephatrine/remark42-ce:1.11.3 --amend nephatrine/remark42-ce:latest-amd64 --amend nephatrine/remark42-ce:latest-arm64v8 --amend nephatrine/remark42-ce:latest-armv7
+          docker manifest create nephatrine/remark42-ce:1.11 --amend nephatrine/remark42-ce:latest-amd64 --amend nephatrine/remark42-ce:latest-arm64v8 --amend nephatrine/remark42-ce:latest-armv7
+          docker manifest create nephatrine/remark42-ce:1 --amend nephatrine/remark42-ce:latest-amd64 --amend nephatrine/remark42-ce:latest-arm64v8 --amend nephatrine/remark42-ce:latest-armv7
+          docker manifest create nephatrine/remark42-ce:latest --amend nephatrine/remark42-ce:latest-amd64 --amend nephatrine/remark42-ce:latest-arm64v8 --amend nephatrine/remark42-ce:latest-armv7
+          docker manifest push --purge nephatrine/remark42-ce:1.11.3
+          docker manifest push --purge nephatrine/remark42-ce:1.11
+          docker manifest push --purge nephatrine/remark42-ce:1
+          docker manifest push --purge nephatrine/remark42-ce:latest
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+      - name: Docker Describe
+        uses: actions/dockerhub-update-description@v3
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASS }}
+          repository: nephatrine/remark42-ce
