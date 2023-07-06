@@ -11,8 +11,7 @@ being updated. There are tags for older versions, but these may no longer be
 using the latest Alpine version and packages.
 
 To secure this service, we suggest a separate reverse proxy server, such as an
-[NGINX](https://nginx.com/) container. Alternatively, WriteFreely does include
-built-in options for using your own SSL certificates or using LetsEncrypt.
+[NGINX](https://nginx.com/) container.
 
 ## Docker-Compose
 
