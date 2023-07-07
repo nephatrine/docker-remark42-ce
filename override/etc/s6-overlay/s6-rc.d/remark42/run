@@ -1,55 +1,55 @@
 #!/command/with-contenv /bin/bash
 
 export HOME=/mnt/config/home
-
-# Handle User Config
-
-if [[ ! -d /mnt/config/etc ]]; then
-  /command/s6-setuidgid guardian /bin/mkdir -p /mnt/config/etc
-fi
-if [[ ! -f /mnt/config/etc/remark42.sh && /mnt/config/etc ]]; then
-  echo '#!/bin/bash' | /command/s6-setuidgid guardian /usr/bin/tee /mnt/config/etc/remark42.sh
-  echo "#export REMARK_URL=\"http://127.0.0.1:8080\"" | /command/s6-setuidgid guardian /usr/bin/tee -a /mnt/config/etc/remark42.sh
-  echo "export SECRET=\${SECRET:-\"$(/usr/bin/openssl rand -hex 32)\"}" >> /mnt/config/etc/remark42.sh
-  echo "#export SITE=\"remark\"" | /command/s6-setuidgid guardian /usr/bin/tee -a /mnt/config/etc/remark42.sh
-  echo "#export AUTH_GITHUB_CID=" | /command/s6-setuidgid guardian /usr/bin/tee -a /mnt/config/etc/remark42.sh
-  echo "#export AUTH_GITHUB_CSEC=" | /command/s6-setuidgid guardian /usr/bin/tee -a /mnt/config/etc/remark42.sh
-  echo "#export AUTH_GOOGLE_CID=" | /command/s6-setuidgid guardian /usr/bin/tee -a /mnt/config/etc/remark42.sh
-  echo "#export AUTH_GOOGLE_CSEC=" | /command/s6-setuidgid guardian /usr/bin/tee -a /mnt/config/etc/remark42.sh
-  /command/s6-setuidgid guardian /bin/chmod +x /mnt/config/etc/remark42.sh
-fi
-if [[ -f /mnt/config/etc/remark42.sh ]]; then
-  source /mnt/config/etc/remark42.sh
-fi
-
-# Configure Defaults
-
 export REMARK_URL=${REMARK_URL:-"http://127.0.0.1:8080"}
 export SITE=${SITE:-"remark"}
-
 export BACKUP_PATH=${BACKUP_PATH:-"/mnt/config/data/backups"}
-export REMARK_WEB_ROOT=${REMARK_SECRET:-"/var/www/remark42-live"}
+export REMARK_WEB_ROOT=${REMARK_WEB_ROOT:-"/var/www/remark42-live"}
 export STORE_BOLT_PATH=${STORE_BOLT_PATH:-"/mnt/config/data"}
-
 export AVATAR_URI=${AVATAR_URI:-"/mnt/config/data/avatars"}
 export AVATAR_FS_PATH=${AVATAR_FS_PATH:-"/mnt/config/data/avatars"}
 export AVATAR_BOLT_FILE=${AVATAR_BOLT_FILE:-"/mnt/config/data/avatars.db"}
-
 export IMAGE_FS_PATH=${IMAGE_FS_PATH:-"/mnt/config/data/pictures"}
 export IMAGE_FS_STAGING=${IMAGE_FS_STAGING:-"/mnt/config/data/pictures.staging"}
 export IMAGE_BOLT_FILE=${IMAGE_BOLT_FILE:-"/mnt/config/data/pictures.db"}
 
-# Populare Web Root
+cd /mnt/config/home || exit 1
 
-if [[ ! -d "${REMARK_WEB_ROOT}" ]]; then
-  /bin/mkdir -p "${REMARK_WEB_ROOT}"
-  /bin/chown guardian:users "${REMARK_WEB_ROOT}"
+# Create Config
+
+if [[ ! -d /mnt/config/etc ]]; then
+  /command/s6-setuidgid guardian /bin/mkdir -p /mnt/config/etc
 fi
-if [[ -d "${REMARK_WEB_ROOT}" ]]; then
-  /command/s6-setuidgid guardian /bin/cp -R /var/www/remark42/. "${REMARK_WEB_ROOT}/"
+if [[ ! -f /mnt/config/etc/remark42-config && -f /mnt/config/etc/remark42.sh ]]; then
+  # TODO: Remove this at some point
+  /command/s6-setuidgid guardian /bin/mv /mnt/config/etc/remark42.sh /mnt/config/etc/remark42-config
+fi
+if [[ ! -f /mnt/config/etc/remark42-config && -d /mnt/config/etc ]]; then
+  echo '#!/command/with-contenv /bin/bash' | /command/s6-setuidgid guardian /usr/bin/tee /mnt/config/etc/remark42-config
+  echo "#export REMARK_URL=\"${REMARK_URL}\"" | /command/s6-setuidgid guardian /usr/bin/tee -a /mnt/config/etc/remark42-config
+  echo "export SECRET=\${SECRET:-\"$(/usr/bin/openssl rand -hex 32)\"}" >> /mnt/config/etc/remark42-config
+  echo "#export SITE=\"${SITE}\"" | /command/s6-setuidgid guardian /usr/bin/tee -a /mnt/config/etc/remark42-config
+  echo "#export AUTH_GITHUB_CID=" | /command/s6-setuidgid guardian /usr/bin/tee -a /mnt/config/etc/remark42-config
+  echo "#export AUTH_GITHUB_CSEC=" | /command/s6-setuidgid guardian /usr/bin/tee -a /mnt/config/etc/remark42-config
+  echo "#export AUTH_GOOGLE_CID=" | /command/s6-setuidgid guardian /usr/bin/tee -a /mnt/config/etc/remark42-config
+  echo "#export AUTH_GOOGLE_CSEC=" | /command/s6-setuidgid guardian /usr/bin/tee -a /mnt/config/etc/remark42-config
+  /command/s6-setuidgid guardian /bin/chmod +x /mnt/config/etc/remark42-config
+fi
+if [[ -f /mnt/config/etc/remark42-config ]]; then
+  . /mnt/config/etc/remark42-config
+fi
+
+# Populate Web Root
+
+if [[ ! -d /var/www/remark42-live ]]; then
+  /bin/mkdir -p /var/www/remark42-live
+  /bin/chown guardian:users /var/www/remark42-live
+fi
+if [[ -d /var/www/remark42-live ]]; then
+  /command/s6-setuidgid guardian /bin/cp -R /var/www/remark42/. /var/www/remark42-live/
 
   if [[ -d /mnt/config/www/remark42 ]]; then
-    /command/s6-setuidgid guardian /bin/cp -R /mnt/config/www/remark42/. "${REMARK_WEB_ROOT}/"
+    /command/s6-setuidgid guardian /bin/cp -R /mnt/config/www/remark42/. /var/www/remark42-live/
   fi
 
   if [ -n "${SITE}" ]; then
@@ -62,15 +62,15 @@ if [[ -d "${REMARK_WEB_ROOT}" ]]; then
       export single_site_id=$SITE
       ;;
     esac
-    /command/s6-setuidgid guardian /usr/bin/find "${REMARK_WEB_ROOT}/" -regex '.*\.html$' -print -exec /bin/sed -i "s|site_id:\"[^\"]*\"|site_id:\"${single_site_id}\"|g" {} \;
+    /command/s6-setuidgid guardian /usr/bin/find /var/www/remark42-live/ -regex '.*\.html$' -print -exec /bin/sed -i "s|site_id:\"[^\"]*\"|site_id:\"${single_site_id}\"|g" {} \;
   fi
-  /command/s6-setuidgid guardian /usr/bin/find "${REMARK_WEB_ROOT}/" -regex '.*\.\(html\|js\|mjs\)$' -print -exec /bin/sed -i "s|{% REMARK_URL %}|${REMARK_URL}|g" {} \;
+  /command/s6-setuidgid guardian /usr/bin/find /var/www/remark42-live/ -regex '.*\.\(html\|js\|mjs\)$' -print -exec /bin/sed -i "s|{% REMARK_URL %}|${REMARK_URL}|g" {} \;
 fi
 
 # Run Daemon
 
-if [[ ! -z "${SECRET}" ]]; then
-  /command/s6-setuidgid guardian /usr/bin/remark42 server --secret="${SECRET}" --url="${REMARK_URL}"
+if [[ -n "${SECRET}" ]]; then
+  exec /command/s6-setuidgid guardian /usr/bin/remark42 server --secret="${SECRET}" --url="${REMARK_URL}"
 else
   /bin/echo "** no SECRET provided **"
   /bin/sleep 300
