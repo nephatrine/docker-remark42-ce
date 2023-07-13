@@ -39,7 +39,7 @@ services:
 There are some important configuration files you need to be aware of and
 potentially customize.
 
-- `/mnt/config/etc/remark42`
+- `/mnt/config/etc/remark42-config`
 - `/mnt/config/www/remark42/*`
 
 Modifications to these files will require a service restart to pull in the
