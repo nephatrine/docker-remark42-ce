@@ -1,6 +1,6 @@
 FROM nephatrine/nxbuilder:alpine AS builder1
 
-ARG REMARK42_VERSION=v1.11.3
+ARG REMARK42_VERSION=v1.12.1
 RUN git -C /root clone -b "$REMARK42_VERSION" --single-branch --depth=1 https://github.com/umputun/remark42.git
 
 RUN echo "====== COMPILE REMARK42 ======" \
@@ -10,7 +10,7 @@ RUN echo "====== COMPILE REMARK42 ======" \
 
 FROM nephatrine/nxbuilder:golang AS builder2
 
-ARG REMARK42_VERSION=v1.11.3
+ARG REMARK42_VERSION=v1.12.1
 COPY --from=builder1 /root/remark42/ /root/remark42/
 
 RUN echo "====== COMPILE REMARK42 ======" \

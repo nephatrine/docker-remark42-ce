@@ -6,7 +6,7 @@
 
 This docker image contains a Remark42 server to self-host your own comments.
 
-The `latest` tag points to version `1.11.3` and this is the only image actively
+The `latest` tag points to version `1.12.1` and this is the only image actively
 being updated. There are tags for older versions, but these may no longer be
 using the latest Alpine version and packages.
 
