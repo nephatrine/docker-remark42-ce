@@ -112,7 +112,7 @@ jobs:
           docker manifest create code.nephatrine.net/nephnet/remark42-ce:${BRANCH} --amend code.nephatrine.net/nephnet/remark42-ce:${BRANCH}-amd64 --amend code.nephatrine.net/nephnet/remark42-ce:${BRANCH}-arm64v8 --amend code.nephatrine.net/nephnet/remark42-ce:${BRANCH}-armv7
           docker manifest push --purge code.nephatrine.net/nephnet/remark42-ce:${BRANCH}
   publish_amd64:
-    if: gitea.ref_name == 'master'
+    if: gitea.ref_name == 'master' || gitea.ref_name == ''
     needs: [build_amd64]
     runs-on: nephnet-amd64
     steps:
@@ -126,7 +126,7 @@ jobs:
           docker tag code.nephatrine.net/nephnet/remark42-ce:master-amd64 nephatrine/remark42-ce:latest-amd64
           docker push nephatrine/remark42-ce:latest-amd64
   publish_arm64:
-    if: gitea.ref_name == 'master'
+    if: gitea.ref_name == 'master' || gitea.ref_name == ''
     needs: [build_arm64]
     runs-on: nephnet-arm64
     steps:
@@ -140,7 +140,7 @@ jobs:
           docker tag code.nephatrine.net/nephnet/remark42-ce:master-arm64v8 nephatrine/remark42-ce:latest-arm64v8
           docker push nephatrine/remark42-ce:latest-arm64v8
   publish_armhf:
-    if: gitea.ref_name == 'master'
+    if: gitea.ref_name == 'master' || gitea.ref_name == ''
     needs: [build_armhf]
     runs-on: nephnet-armhf
     steps:
