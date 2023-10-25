@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2023 Daniel Wolf <nephatrine@gmail.com>
+
+SPDX-License-Identifier: ISC
+-->
+
 [Git](https://code.nephatrine.net/NephNET/docker-remark42-ce/src/branch/master) |
 [Docker](https://hub.docker.com/r/nephatrine/remark42-ce/) |
 [unRAID](https://code.nephatrine.net/NephNET/unraid-containers)
