@@ -1,19 +1,25 @@
+# SPDX-FileCopyrightText: 2023 Daniel Wolf <nephatrine@gmail.com>
+#
+# SPDX-License-Identifier: ISC
+
 FROM nephatrine/nxbuilder:alpine AS builder1
 
 ARG REMARK42_VERSION=v1.12.1
 RUN git -C /root clone -b "$REMARK42_VERSION" --single-branch --depth=1 https://github.com/umputun/remark42.git
-
-RUN echo "====== COMPILE REMARK42 ======" \
+RUN echo "====== READY REMARK42 PNPM ======" \
  && cd /root/remark42/frontend \
- && npm i -g pnpm@7 && pnpm i \
- && cd apps/remark42 && pnpm build
+ && npm i -g pnpm@7 && pnpm i
+
+RUN echo "====== COMPILE REMARK42 FRONTEND ======" \
+ && cd /root/remark42/frontend/apps/remark42 \
+ && pnpm build
 
 FROM nephatrine/nxbuilder:golang AS builder2
 
 ARG REMARK42_VERSION=v1.12.1
 COPY --from=builder1 /root/remark42/ /root/remark42/
 
-RUN echo "====== COMPILE REMARK42 ======" \
+RUN echo "====== COMPILE REMARK42 BACKEND ======" \
  && cd /root/remark42/backend \
  && go build -o remark42 -ldflags "-X main.revision=${REMARK42_VERSION} -s -w" ./app
 
