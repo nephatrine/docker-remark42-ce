@@ -1,8 +1,8 @@
-# SPDX-FileCopyrightText: 2023 Daniel Wolf <nephatrine@gmail.com>
+# SPDX-FileCopyrightText: 2023 - 2024 Daniel Wolf <nephatrine@gmail.com>
 #
 # SPDX-License-Identifier: ISC
 
-FROM nephatrine/nxbuilder:alpine AS builder1
+FROM code.nephatrine.net/nephnet/nxb-alpine:latest AS builder1
 
 ARG REMARK42_VERSION=v1.12.1
 RUN git -C /root clone -b "$REMARK42_VERSION" --single-branch --depth=1 https://github.com/umputun/remark42.git
@@ -14,7 +14,7 @@ RUN echo "====== COMPILE REMARK42 FRONTEND ======" \
  && cd /root/remark42/frontend/apps/remark42 \
  && pnpm build
 
-FROM nephatrine/nxbuilder:golang AS builder2
+FROM code.nephatrine.net/nephnet/nxb-golang:latest AS builder2
 
 ARG REMARK42_VERSION=v1.12.1
 COPY --from=builder1 /root/remark42/ /root/remark42/
@@ -23,7 +23,7 @@ RUN echo "====== COMPILE REMARK42 BACKEND ======" \
  && cd /root/remark42/backend \
  && go build -o remark42 -ldflags "-X main.revision=${REMARK42_VERSION} -s -w" ./app
 
-FROM nephatrine/alpine-s6:latest
+FROM code.nephatrine.net/nephnet/alpine-s6:latest
 LABEL maintainer="Daniel Wolf <nephatrine@gmail.com>"
 
 COPY --from=builder2 /root/remark42/backend/remark42 /usr/bin/

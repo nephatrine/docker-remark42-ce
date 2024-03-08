@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023 Daniel Wolf <nephatrine@gmail.com>
+# SPDX-FileCopyrightText: 2023 - 2024 Daniel Wolf <nephatrine@gmail.com>
 #
 # SPDX-License-Identifier: ISC
 
@@ -14,14 +14,9 @@ jobs:
     runs-on: nephnet-amd64
     steps:
       - name: Checkout Repository
-        uses: https://gitea.com/actions/checkout@v3
-      - name: Docker Build
-        run: |
-          export BRANCH=${GITHUB_REF##*/}
-          export BRANCH=${BRANCH:-master}
-          docker build --pull -t code.nephatrine.net/nephnet/remark42-ce:${BRANCH}-amd64-jscache --target builder1 ${{ gitea.workspace }}
-          docker build --pull -t code.nephatrine.net/nephnet/remark42-ce:${BRANCH}-amd64-gocache --target builder2 ${{ gitea.workspace }}
-          docker build --pull -t code.nephatrine.net/nephnet/remark42-ce:${BRANCH}-amd64 ${{ gitea.workspace }}
+        uses: https://gitea.com/actions/checkout@v4
+      - name: BuildX Setup
+        uses: https://github.com/docker/setup-buildx-action@v3
       - name: Docker Login
         uses: https://github.com/docker/login-action@v3
         if: gitea.ref_name == 'master' || gitea.ref_name == ''
@@ -29,12 +24,27 @@ jobs:
           registry: code.nephatrine.net
           username: ${{ gitea.actor }}
           password: ${{ secrets.PACKAGER_TOKEN }}
-      - name: Docker Push
+      - name: Build & Push (Master)
+        uses: https://github.com/docker/build-push-action@v5
         if: gitea.ref_name == 'master' || gitea.ref_name == ''
-        run: docker push code.nephatrine.net/nephnet/remark42-ce:master-amd64
+        with:
+          context: .
+          platforms: linux/amd64
+          provenance: false
+          pull: true
+          push: true
+          tags: code.nephatrine.net/nephnet/remark42-ce:latest-amd64
+          cache-from: type=registry,ref=code.nephatrine.net/nephnet/remark42-ce-cache:latest-amd64
+          cache-to: type=registry,image-manifest=true,oci-mediatypes=true,ref=code.nephatrine.net/nephnet/remark42-ce-cache:latest-amd64,mode=max
+      - name: Build & Push (Branch)
+        if: gitea.ref_name != 'master' && gitea.ref_name != ''
+        run: |
+          export BRANCH=${GITHUB_REF##*/}
+          export BRANCH=${BRANCH:-unknown}
+          docker buildx build --pull -t code.nephatrine.net/nephnet/remark42-ce:${BRANCH}-latest-amd64 --platform linux/amd64 ${{ gitea.workspace }}
       - name: Notify Discord
         uses: https://github.com/sarisia/actions-status-discord@v1
-        if: failure()
+        if: failure() || gitea.event_name != 'schedule'
         with:
           title: "Container Build (X86_64)"
           webhook: ${{ secrets.DISCORD_WEBHOOK_BUILD }}
@@ -43,14 +53,9 @@ jobs:
     runs-on: nephnet-i386
     steps:
       - name: Checkout Repository
-        uses: https://gitea.com/actions/checkout@v3
-      - name: Docker Build
-        run: |
-          export BRANCH=${GITHUB_REF##*/}
-          export BRANCH=${BRANCH:-master}
-          docker build --pull -t code.nephatrine.net/nephnet/remark42-ce:${BRANCH}-i386-jscache --target builder1 --platform linux/386 ${{ gitea.workspace }}
-          docker build --pull -t code.nephatrine.net/nephnet/remark42-ce:${BRANCH}-i386-gocache --target builder2 --platform linux/386 ${{ gitea.workspace }}
-          docker build --pull -t code.nephatrine.net/nephnet/remark42-ce:${BRANCH}-i386 --platform linux/386 ${{ gitea.workspace }}
+        uses: https://gitea.com/actions/checkout@v4
+      - name: BuildX Setup
+        uses: https://github.com/docker/setup-buildx-action@v3
       - name: Docker Login
         uses: https://github.com/docker/login-action@v3
         if: gitea.ref_name == 'master' || gitea.ref_name == ''
@@ -58,12 +63,27 @@ jobs:
           registry: code.nephatrine.net
           username: ${{ gitea.actor }}
           password: ${{ secrets.PACKAGER_TOKEN }}
-      - name: Docker Push
+      - name: Build & Push (Master)
+        uses: https://github.com/docker/build-push-action@v5
         if: gitea.ref_name == 'master' || gitea.ref_name == ''
-        run: docker push code.nephatrine.net/nephnet/remark42-ce:master-i386
+        with:
+          context: .
+          platforms: linux/386
+          provenance: false
+          pull: true
+          push: true
+          tags: code.nephatrine.net/nephnet/remark42-ce:latest-i386
+          cache-from: type=registry,ref=code.nephatrine.net/nephnet/remark42-ce-cache:latest-i386
+          cache-to: type=registry,image-manifest=true,oci-mediatypes=true,ref=code.nephatrine.net/nephnet/remark42-ce-cache:latest-i386,mode=max
+      - name: Build & Push (Branch)
+        if: gitea.ref_name != 'master' && gitea.ref_name != ''
+        run: |
+          export BRANCH=${GITHUB_REF##*/}
+          export BRANCH=${BRANCH:-unknown}
+          docker buildx build --pull -t code.nephatrine.net/nephnet/remark42-ce:${BRANCH}-latest-i386 --platform linux/386 ${{ gitea.workspace }}
       - name: Notify Discord
         uses: https://github.com/sarisia/actions-status-discord@v1
-        if: failure()
+        if: failure() || gitea.event_name != 'schedule'
         with:
           title: "Container Build (I686)"
           webhook: ${{ secrets.DISCORD_WEBHOOK_BUILD }}
@@ -72,14 +92,9 @@ jobs:
     runs-on: nephnet-arm64
     steps:
       - name: Checkout Repository
-        uses: https://gitea.com/actions/checkout@v3
-      - name: Docker Build
-        run: |
-          export BRANCH=${GITHUB_REF##*/}
-          export BRANCH=${BRANCH:-master}
-          docker build --pull -t code.nephatrine.net/nephnet/remark42-ce:${BRANCH}-arm64v8-jscache --target builder1 ${{ gitea.workspace }}
-          docker build --pull -t code.nephatrine.net/nephnet/remark42-ce:${BRANCH}-arm64v8-gocache --target builder2 ${{ gitea.workspace }}
-          docker build --pull -t code.nephatrine.net/nephnet/remark42-ce:${BRANCH}-arm64v8 ${{ gitea.workspace }}
+        uses: https://gitea.com/actions/checkout@v4
+      - name: BuildX Setup
+        uses: https://github.com/docker/setup-buildx-action@v3
       - name: Docker Login
         uses: https://github.com/docker/login-action@v3
         if: gitea.ref_name == 'master' || gitea.ref_name == ''
@@ -87,12 +102,27 @@ jobs:
           registry: code.nephatrine.net
           username: ${{ gitea.actor }}
           password: ${{ secrets.PACKAGER_TOKEN }}
-      - name: Docker Push
+      - name: Build & Push (Master)
+        uses: https://github.com/docker/build-push-action@v5
         if: gitea.ref_name == 'master' || gitea.ref_name == ''
-        run: docker push code.nephatrine.net/nephnet/remark42-ce:master-arm64v8
+        with:
+          context: .
+          platforms: linux/arm64/v8
+          provenance: false
+          pull: true
+          push: true
+          tags: code.nephatrine.net/nephnet/remark42-ce:latest-arm64
+          cache-from: type=registry,ref=code.nephatrine.net/nephnet/remark42-ce-cache:latest-arm64
+          cache-to: type=registry,image-manifest=true,oci-mediatypes=true,ref=code.nephatrine.net/nephnet/remark42-ce-cache:latest-arm64,mode=max
+      - name: Build & Push (Branch)
+        if: gitea.ref_name != 'master' && gitea.ref_name != ''
+        run: |
+          export BRANCH=${GITHUB_REF##*/}
+          export BRANCH=${BRANCH:-unknown}
+          docker buildx build --pull -t code.nephatrine.net/nephnet/remark42-ce:${BRANCH}-latest-arm64 --platform linux/arm64/v8 ${{ gitea.workspace }}
       - name: Notify Discord
         uses: https://github.com/sarisia/actions-status-discord@v1
-        if: failure()
+        if: failure() || gitea.event_name != 'schedule'
         with:
           title: "Container Build (AARCH64)"
           webhook: ${{ secrets.DISCORD_WEBHOOK_BUILD }}
@@ -101,14 +131,9 @@ jobs:
     runs-on: nephnet-armhf
     steps:
       - name: Checkout Repository
-        uses: https://gitea.com/actions/checkout@v3
-      - name: Docker Build
-        run: |
-          export BRANCH=${GITHUB_REF##*/}
-          export BRANCH=${BRANCH:-master}
-          docker build --pull -t code.nephatrine.net/nephnet/remark42-ce:${BRANCH}-armv7-jscache --target builder1 --platform linux/arm/v7 ${{ gitea.workspace }}
-          docker build --pull -t code.nephatrine.net/nephnet/remark42-ce:${BRANCH}-armv7-gocache --target builder2 --platform linux/arm/v7 ${{ gitea.workspace }}
-          docker build --pull -t code.nephatrine.net/nephnet/remark42-ce:${BRANCH}-armv7 --platform linux/arm/v7 ${{ gitea.workspace }}
+        uses: https://gitea.com/actions/checkout@v4
+      - name: BuildX Setup
+        uses: https://github.com/docker/setup-buildx-action@v3
       - name: Docker Login
         uses: https://github.com/docker/login-action@v3
         if: gitea.ref_name == 'master' || gitea.ref_name == ''
@@ -116,97 +141,34 @@ jobs:
           registry: code.nephatrine.net
           username: ${{ gitea.actor }}
           password: ${{ secrets.PACKAGER_TOKEN }}
-      - name: Docker Push
+      - name: Build & Push (Master)
+        uses: https://github.com/docker/build-push-action@v5
         if: gitea.ref_name == 'master' || gitea.ref_name == ''
-        run: docker push code.nephatrine.net/nephnet/remark42-ce:master-armv7
+        with:
+          context: .
+          platforms: linux/arm/v7
+          provenance: false
+          pull: true
+          push: true
+          tags: code.nephatrine.net/nephnet/remark42-ce:latest-armv7
+          cache-from: type=registry,ref=code.nephatrine.net/nephnet/remark42-ce-cache:latest-armv7
+          cache-to: type=registry,image-manifest=true,oci-mediatypes=true,ref=code.nephatrine.net/nephnet/remark42-ce-cache:latest-armv7,mode=max
+      - name: Build & Push (Branch)
+        if: gitea.ref_name != 'master' && gitea.ref_name != ''
+        run: |
+          export BRANCH=${GITHUB_REF##*/}
+          export BRANCH=${BRANCH:-unknown}
+          docker buildx build --pull -t code.nephatrine.net/nephnet/remark42-ce:${BRANCH}-latest-armv7 --platform linux/arm/v7 ${{ gitea.workspace }}
       - name: Notify Discord
         uses: https://github.com/sarisia/actions-status-discord@v1
-        if: failure()
+        if: failure() || gitea.event_name != 'schedule'
         with:
           title: "Container Build (ARMV7L)"
           webhook: ${{ secrets.DISCORD_WEBHOOK_BUILD }}
   build_manifest:
     if: gitea.ref_name == 'master' || gitea.ref_name == ''
     needs: [build_amd64, build_i386, build_arm64, build_armhf]
-    runs-on: nephnet
-    steps:
-      - name: Docker Login
-        uses: https://github.com/docker/login-action@v3
-        with:
-          registry: code.nephatrine.net
-          username: ${{ gitea.actor }}
-          password: ${{ secrets.PACKAGER_TOKEN }}
-      - name: Docker Manifest
-        run: |
-          docker manifest create code.nephatrine.net/nephnet/remark42-ce:latest --amend code.nephatrine.net/nephnet/remark42-ce:master-amd64 --amend code.nephatrine.net/nephnet/remark42-ce:master-i386 --amend code.nephatrine.net/nephnet/remark42-ce:master-arm64v8 --amend code.nephatrine.net/nephnet/remark42-ce:master-armv7
-          docker manifest push --purge code.nephatrine.net/nephnet/remark42-ce:latest
-  publish_amd64:
-    if: gitea.ref_name == 'master' || gitea.ref_name == ''
-    needs: [build_amd64]
     runs-on: nephnet-amd64
-    steps:
-      - name: Docker Login
-        uses: https://github.com/docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USER }}
-          password: ${{ secrets.DOCKER_PASS }}
-      - name: Docker Push
-        run: |
-          docker pull code.nephatrine.net/nephnet/remark42-ce:master-amd64
-          docker tag code.nephatrine.net/nephnet/remark42-ce:master-amd64 nephatrine/remark42-ce:latest-amd64
-          docker push nephatrine/remark42-ce:latest-amd64
-          docker rmi nephatrine/remark42-ce:latest-amd64
-  publish_i386:
-    if: gitea.ref_name == 'master' || gitea.ref_name == ''
-    needs: [build_i386]
-    runs-on: nephnet-i386
-    steps:
-      - name: Docker Login
-        uses: https://github.com/docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USER }}
-          password: ${{ secrets.DOCKER_PASS }}
-      - name: Docker Push
-        run: |
-          docker pull code.nephatrine.net/nephnet/remark42-ce:master-i386
-          docker tag code.nephatrine.net/nephnet/remark42-ce:master-i386 nephatrine/remark42-ce:latest-i386
-          docker push nephatrine/remark42-ce:latest-i386
-          docker rmi nephatrine/remark42-ce:latest-i386
-  publish_arm64:
-    if: gitea.ref_name == 'master' || gitea.ref_name == ''
-    needs: [build_arm64]
-    runs-on: nephnet-arm64
-    steps:
-      - name: Docker Login
-        uses: https://github.com/docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USER }}
-          password: ${{ secrets.DOCKER_PASS }}
-      - name: Docker Push
-        run: |
-          docker pull code.nephatrine.net/nephnet/remark42-ce:master-arm64v8
-          docker tag code.nephatrine.net/nephnet/remark42-ce:master-arm64v8 nephatrine/remark42-ce:latest-arm64v8
-          docker push nephatrine/remark42-ce:latest-arm64v8
-          docker rmi nephatrine/remark42-ce:latest-arm64v8
-  publish_armhf:
-    if: gitea.ref_name == 'master' || gitea.ref_name == ''
-    needs: [build_armhf]
-    runs-on: nephnet-armhf
-    steps:
-      - name: Docker Login
-        uses: https://github.com/docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USER }}
-          password: ${{ secrets.DOCKER_PASS }}
-      - name: Docker Push
-        run: |
-          docker pull code.nephatrine.net/nephnet/remark42-ce:master-armv7
-          docker tag code.nephatrine.net/nephnet/remark42-ce:master-armv7 nephatrine/remark42-ce:latest-armv7
-          docker push nephatrine/remark42-ce:latest-armv7
-          docker rmi nephatrine/remark42-ce:latest-armv7
-  publish_manifest:
-    needs: [publish_amd64, publish_i386, publish_arm64, publish_armhf]
-    runs-on: nephnet
     steps:
       - name: Check Base Image
         if: gitea.event_name == 'schedule'
@@ -219,18 +181,16 @@ jobs:
       - name: Docker Login
         uses: https://github.com/docker/login-action@v3
         with:
+          registry: code.nephatrine.net
+          username: ${{ gitea.actor }}
+          password: ${{ secrets.PACKAGER_TOKEN }}
+      - name: Docker Login
+        uses: https://github.com/docker/login-action@v3
+        with:
           username: ${{ secrets.DOCKER_USER }}
           password: ${{ secrets.DOCKER_PASS }}
       - name: Docker Manifest
-        run: |
-          docker manifest create nephatrine/remark42-ce:1.12.1 --amend nephatrine/remark42-ce:latest-amd64 --amend nephatrine/remark42-ce:latest-i386 --amend nephatrine/remark42-ce:latest-arm64v8 --amend nephatrine/remark42-ce:latest-armv7
-          docker manifest create nephatrine/remark42-ce:1.12 --amend nephatrine/remark42-ce:latest-amd64 --amend nephatrine/remark42-ce:latest-i386 --amend nephatrine/remark42-ce:latest-arm64v8 --amend nephatrine/remark42-ce:latest-armv7
-          docker manifest create nephatrine/remark42-ce:1 --amend nephatrine/remark42-ce:latest-amd64 --amend nephatrine/remark42-ce:latest-i386 --amend nephatrine/remark42-ce:latest-arm64v8 --amend nephatrine/remark42-ce:latest-armv7
-          docker manifest create nephatrine/remark42-ce:latest --amend nephatrine/remark42-ce:latest-amd64 --amend nephatrine/remark42-ce:latest-i386 --amend nephatrine/remark42-ce:latest-arm64v8 --amend nephatrine/remark42-ce:latest-armv7
-          docker manifest push --purge nephatrine/remark42-ce:1.12.1
-          docker manifest push --purge nephatrine/remark42-ce:1.12
-          docker manifest push --purge nephatrine/remark42-ce:1
-          docker manifest push --purge nephatrine/remark42-ce:latest
+        run: docker buildx imagetools create -t code.nephatrine.net/nephnet/remark42-ce:latest -t nephatrine/remark42-ce:latest -t nephatrine/remark42-ce:1.12.1 -t nephatrine/remark42-ce:1.12 -t nephatrine/remark42-ce:1 code.nephatrine.net/nephnet/remark42-ce:latest-amd64 code.nephatrine.net/nephnet/remark42-ce:latest-i386 code.nephatrine.net/nephnet/remark42-ce:latest-arm64 code.nephatrine.net/nephnet/remark42-ce:latest-armv7
       - name: Notify Discord
         if: gitea.event_name != 'schedule' || steps.checkbase.outputs.needs-updating == 'true'
         uses: https://github.com/sarisia/actions-status-discord@v1
@@ -240,10 +200,16 @@ jobs:
           nodetail: true
           webhook: ${{ secrets.DISCORD_WEBHOOK_PACKAGE }}
       - name: Checkout Repository
-        uses: https://gitea.com/actions/checkout@v3
+        uses: https://gitea.com/actions/checkout@v4
       - name: Docker Describe
         uses: https://github.com/peter-evans/dockerhub-description@v3
         with:
           username: ${{ secrets.DOCKER_USER }}
           password: ${{ secrets.DOCKER_PASS }}
           repository: nephatrine/remark42-ce
+      - name: Notify Discord
+        uses: https://github.com/sarisia/actions-status-discord@v1
+        if: failure()
+        with:
+          title: "Container Publish"
+          webhook: ${{ secrets.DISCORD_WEBHOOK_PACKAGE }}
