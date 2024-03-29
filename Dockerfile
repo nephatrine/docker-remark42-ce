@@ -14,6 +14,8 @@ RUN pnpm build
 WORKDIR /root/remark42/backend
 RUN go build -o remark42 -ldflags "-X main.revision=${REMARK42_VERSION} -s -w" ./app
 
+# ------------------------------
+
 # hadolint ignore=DL3007
 FROM code.nephatrine.net/nephnet/alpine-s6:latest
 LABEL maintainer="Daniel Wolf <nephatrine@gmail.com>"
