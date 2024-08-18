@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: ISC
 
-FROM code.nephatrine.net/nephnet/nxb-alpine:latest-golang AS builder
+FROM code.nephatrine.net/nephnet/nxb-alpine:golang AS builder
 
 ARG REMARK42_VERSION=v1.12.1
 RUN git -C /root clone -b "$REMARK42_VERSION" --single-branch --depth=1 https://github.com/umputun/remark42.git
