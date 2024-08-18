@@ -4,7 +4,7 @@
 
 FROM code.nephatrine.net/nephnet/nxb-alpine:golang AS builder
 
-ARG REMARK42_VERSION=v1.12.1
+ARG REMARK42_VERSION=v1.13.1
 RUN git -C /root clone -b "$REMARK42_VERSION" --single-branch --depth=1 https://github.com/umputun/remark42.git
 
 WORKDIR /root/remark42/frontend
