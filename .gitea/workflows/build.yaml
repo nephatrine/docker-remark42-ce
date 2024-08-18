@@ -259,6 +259,10 @@ jobs:
           password: ${{ secrets.PACKAGER_TOKEN }}
       - name: Docker Manifest
         run: |
+          docker manifest rm code.nephatrine.net/nephnet/remark42-ce:1.12.1 || true
+          docker manifest rm code.nephatrine.net/nephnet/remark42-ce:1.12 || true
+          docker manifest rm code.nephatrine.net/nephnet/remark42-ce:1 || true
+          docker manifest rm code.nephatrine.net/nephnet/remark42-ce:latest || true
           docker manifest create code.nephatrine.net/nephnet/remark42-ce:1.12.1 --amend code.nephatrine.net/nephnet/amd64:remark42-ce --amend code.nephatrine.net/nephnet/i386:remark42-ce --amend code.nephatrine.net/nephnet/arm64:remark42-ce --amend code.nephatrine.net/nephnet/armv7:remark42-ce
           docker manifest create code.nephatrine.net/nephnet/remark42-ce:1.12 --amend code.nephatrine.net/nephnet/amd64:remark42-ce --amend code.nephatrine.net/nephnet/i386:remark42-ce --amend code.nephatrine.net/nephnet/arm64:remark42-ce --amend code.nephatrine.net/nephnet/armv7:remark42-ce
           docker manifest create code.nephatrine.net/nephnet/remark42-ce:1 --amend code.nephatrine.net/nephnet/amd64:remark42-ce --amend code.nephatrine.net/nephnet/i386:remark42-ce --amend code.nephatrine.net/nephnet/arm64:remark42-ce --amend code.nephatrine.net/nephnet/armv7:remark42-ce
@@ -285,6 +289,10 @@ jobs:
           password: ${{ secrets.DOCKER_PASS }}
       - name: Docker Manifest
         run: |
+          docker manifest rm nephatrine/remark42-ce:1.12.1 || true
+          docker manifest rm nephatrine/remark42-ce:1.12 || true
+          docker manifest rm nephatrine/remark42-ce:1 || true
+          docker manifest rm nephatrine/remark42-ce:latest || true
           docker manifest create nephatrine/remark42-ce:1.12.1 --amend nephatrine/amd64:remark42-ce --amend nephatrine/ia32:remark42-ce --amend nephatrine/arm64:remark42-ce --amend nephatrine/armv7:remark42-ce
           docker manifest create nephatrine/remark42-ce:1.12 --amend nephatrine/amd64:remark42-ce --amend nephatrine/ia32:remark42-ce --amend nephatrine/arm64:remark42-ce --amend nephatrine/armv7:remark42-ce
           docker manifest create nephatrine/remark42-ce:1 --amend nephatrine/amd64:remark42-ce --amend nephatrine/ia32:remark42-ce --amend nephatrine/arm64:remark42-ce --amend nephatrine/armv7:remark42-ce
