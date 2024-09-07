@@ -316,8 +316,84 @@ jobs:
       - name: Clean Up
         if: failure()
         run: docker rmi nephatrine/armv7:remark42-ce
+  build_riscv64:
+    if: gitea.repository_owner == 'NephNET' && (!(startsWith(gitea.event.head_commit.message, 'chore') || startsWith(gitea.event.head_commit.message, 'docs')) || gitea.event_name == 'schedule')
+    runs-on: nephnet-riscv64
+    continue-on-error: true
+    steps:
+      - name: Checkout Repository
+        uses: https://code.nephatrine.net/NephHub/checkout@v4
+      - name: BuildX Setup
+        uses: https://code.nephatrine.net/NephHub/setup-buildx-action@v3
+      - name: NephCode Login (Push)
+        continue-on-error: true
+        id: nclogin
+        uses: https://code.nephatrine.net/NephHub/login-action@v3
+        with:
+          registry: code.nephatrine.net
+          username: ${{ gitea.actor }}
+          password: ${{ secrets.PACKAGER_TOKEN }}
+      - name: Wait to Retry
+        if: steps.nclogin.outcome != 'success'
+        run: sleep 60
+      - name: Retry NephCode Login (Push)
+        if: steps.nclogin.outcome != 'success'
+        uses: https://code.nephatrine.net/NephHub/login-action@v3
+        with:
+          registry: code.nephatrine.net
+          username: ${{ gitea.actor }}
+          password: ${{ secrets.PACKAGER_TOKEN }}
+      - name: Build & Push
+        uses: https://code.nephatrine.net/NephHub/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/riscv64
+          provenance: false
+          pull: true
+          push: true
+          file: Dockerfile
+          tags: code.nephatrine.net/nephhub/riscv64:remark42-ce
+          cache-from: type=registry,ref=code.nephatrine.net/nephhub/riscv64-cache:remark42-ce
+          cache-to: type=registry,image-manifest=true,oci-mediatypes=true,ref=code.nephatrine.net/nephhub/riscv64-cache:remark42-ce,mode=max
+      - name: Notify Discord
+        uses: https://github.com/sarisia/actions-status-discord@v1
+        if: failure()
+        with:
+          title: "Container Build (RISCV64; 1.13.1)"
+          webhook: ${{ secrets.DISCORD_WEBHOOK_BUILD }}
+  push_riscv64:
+    needs: [build_riscv64]
+    runs-on: nephnet-fast
+    continue-on-error: true
+    steps:
+      - name: DockerHub Login (Push)
+        continue-on-error: true
+        id: dhlogin
+        uses: https://code.nephatrine.net/NephHub/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASS }}
+      - name: Wait to Retry
+        if: steps.dhlogin.outcome != 'success'
+        run: sleep 60
+      - name: Retry DockerHub Login (Push)
+        if: steps.dhlogin.outcome != 'success'
+        uses: https://code.nephatrine.net/NephHub/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASS }}
+      - name: Tag & Push
+        run: |
+          docker pull code.nephatrine.net/nephhub/riscv64:remark42-ce --platform linux/riscv64
+          docker tag code.nephatrine.net/nephhub/riscv64:remark42-ce nephatrine/riscv64:remark42-ce
+          docker rmi code.nephatrine.net/nephhub/riscv64:remark42-ce
+          docker push nephatrine/riscv64:remark42-ce
+          docker rmi nephatrine/riscv64:remark42-ce
+      - name: Clean Up
+        if: failure()
+        run: docker rmi nephatrine/riscv64:remark42-ce
   build:
-    needs: [build_amd64, build_i386, build_arm64, build_armhf]
+    needs: [build_amd64, build_i386, build_arm64, build_armhf, build_riscv64]
     runs-on: nephnet-fast
     continue-on-error: true
     steps:
@@ -343,7 +419,7 @@ jobs:
         continue-on-error: true
         id: manifest
         run: |
-          export IMAGELIST="--amend code.nephatrine.net/nephhub/amd64:remark42-ce --amend code.nephatrine.net/nephhub/ia32:remark42-ce --amend code.nephatrine.net/nephhub/arm64:remark42-ce --amend code.nephatrine.net/nephhub/arm32:remark42-ce"
+          export IMAGELIST="--amend code.nephatrine.net/nephhub/amd64:remark42-ce --amend code.nephatrine.net/nephhub/ia32:remark42-ce --amend code.nephatrine.net/nephhub/arm64:remark42-ce --amend code.nephatrine.net/nephhub/arm32:remark42-ce --amend code.nephatrine.net/nephhub/riscv64:remark42-ce"
           for manifestName in 1.13.1 1.13 1 latest; do docker manifest rm code.nephatrine.net/nephnet/remark42-ce:${manifestName} || true; docker manifest create code.nephatrine.net/nephnet/remark42-ce:${manifestName} ${IMAGELIST}; docker manifest push --purge code.nephatrine.net/nephnet/remark42-ce:${manifestName}; done
       - name: Wait to Retry
         if: steps.manifest.outcome != 'success'
@@ -351,7 +427,7 @@ jobs:
       - name: Retry Docker Manifest
         if: steps.manifest.outcome != 'success'
         run: |
-          export IMAGELIST="--amend code.nephatrine.net/nephhub/amd64:remark42-ce --amend code.nephatrine.net/nephhub/ia32:remark42-ce --amend code.nephatrine.net/nephhub/arm64:remark42-ce --amend code.nephatrine.net/nephhub/arm32:remark42-ce"
+          export IMAGELIST="--amend code.nephatrine.net/nephhub/amd64:remark42-ce --amend code.nephatrine.net/nephhub/ia32:remark42-ce --amend code.nephatrine.net/nephhub/arm64:remark42-ce --amend code.nephatrine.net/nephhub/arm32:remark42-ce --amend code.nephatrine.net/nephhub/riscv64:remark42-ce"
           for manifestName in 1.13.1 1.13 1 latest; do docker manifest rm code.nephatrine.net/nephnet/remark42-ce:${manifestName} || true; docker manifest create code.nephatrine.net/nephnet/remark42-ce:${manifestName} ${IMAGELIST}; docker manifest push --purge code.nephatrine.net/nephnet/remark42-ce:${manifestName}; done
       - name: Notify Discord
         continue-on-error: true
@@ -361,7 +437,7 @@ jobs:
           title: "Container Publish (1.13.1)"
           webhook: ${{ secrets.DISCORD_WEBHOOK_PACKAGE }}
   push:
-    needs: [push_amd64, push_i386, push_arm64, push_armhf]
+    needs: [push_amd64, push_i386, push_arm64, push_armhf, push_riscv64]
     runs-on: nephnet-fast
     continue-on-error: true
     steps:
@@ -385,7 +461,7 @@ jobs:
         continue-on-error: true
         id: manifest
         run: |
-          export IMAGELIST="--amend nephatrine/amd64:remark42-ce --amend nephatrine/ia32:remark42-ce --amend nephatrine/arm64:remark42-ce --amend nephatrine/armv7:remark42-ce"
+          export IMAGELIST="--amend nephatrine/amd64:remark42-ce --amend nephatrine/ia32:remark42-ce --amend nephatrine/arm64:remark42-ce --amend nephatrine/armv7:remark42-ce --amend nephatrine/riscv64:remark42-ce"
           for manifestName in 1.13.1 1.13 1 latest; do docker manifest rm nephatrine/remark42-ce:${manifestName} || true; docker manifest create nephatrine/remark42-ce:${manifestName} ${IMAGELIST}; docker manifest push --purge nephatrine/remark42-ce:${manifestName}; done
       - name: Wait to Retry
         if: steps.manifest.outcome != 'success'
@@ -393,7 +469,7 @@ jobs:
       - name: Retry Docker Manifest
         if: steps.manifest.outcome != 'success'
         run: |
-          export IMAGELIST="--amend nephatrine/amd64:remark42-ce --amend nephatrine/ia32:remark42-ce --amend nephatrine/arm64:remark42-ce --amend nephatrine/armv7:remark42-ce"
+          export IMAGELIST="--amend nephatrine/amd64:remark42-ce --amend nephatrine/ia32:remark42-ce --amend nephatrine/arm64:remark42-ce --amend nephatrine/armv7:remark42-ce --amend nephatrine/riscv64:remark42-ce"
           for manifestName in 1.13.1 1.13 1 latest; do docker manifest rm nephatrine/remark42-ce:${manifestName} || true; docker manifest create nephatrine/remark42-ce:${manifestName} ${IMAGELIST}; docker manifest push --purge nephatrine/remark42-ce:${manifestName}; done
       - name: Notify Discord
         uses: https://code.nephatrine.net/NephHub/actions-status-discord@v1
