@@ -1,10 +1,10 @@
-# SPDX-FileCopyrightText: 2023 - 2024 Daniel Wolf <nephatrine@gmail.com>
+# SPDX-FileCopyrightText: 2023 - 2025 Daniel Wolf <nephatrine@gmail.com>
 #
 # SPDX-License-Identifier: ISC
 
 FROM code.nephatrine.net/nephnet/nxb-alpine:golang AS builder
 
-ARG REMARK42_VERSION=v1.13.1
+ARG REMARK42_VERSION=v1.14.0
 RUN git -C /root clone -b "$REMARK42_VERSION" --single-branch --depth=1 https://github.com/umputun/remark42.git
 
 WORKDIR /root/remark42/frontend
