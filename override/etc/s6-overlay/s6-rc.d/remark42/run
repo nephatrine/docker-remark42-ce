@@ -1,7 +1,9 @@
 #!/command/with-contenv /bin/bash
-# SPDX-FileCopyrightText: 2023 - 2024 Daniel Wolf <nephatrine@gmail.com>
-#
+# SPDX-FileCopyrightText: 2023-2025 Daniel Wolf <nephatrine@gmail.com>
 # SPDX-License-Identifier: ISC
+
+# shellcheck shell=bash
+# shellcheck disable=SC1091
 
 export HOME=/mnt/config/home
 export REMARK_URL=${REMARK_URL:-"http://127.0.0.1:8080"}
@@ -18,8 +20,6 @@ export IMAGE_BOLT_FILE=${IMAGE_BOLT_FILE:-"/mnt/config/data/pictures.db"}
 
 cd /mnt/config/home || exit 1
 
-# Create Config
-
 if [[ ! -d /mnt/config/etc ]]; then
   /command/s6-setuidgid guardian /bin/mkdir -p /mnt/config/etc
 fi
@@ -30,7 +30,7 @@ fi
 if [[ ! -f /mnt/config/etc/remark42-config && -d /mnt/config/etc ]]; then
   echo '#!/command/with-contenv /bin/bash' | /command/s6-setuidgid guardian /usr/bin/tee /mnt/config/etc/remark42-config
   echo "#export REMARK_URL=\"${REMARK_URL}\"" | /command/s6-setuidgid guardian /usr/bin/tee -a /mnt/config/etc/remark42-config
-  echo "export SECRET=\${SECRET:-\"$(/usr/bin/openssl rand -hex 32)\"}" >> /mnt/config/etc/remark42-config
+  echo "export SECRET=\${SECRET:-\"$(/usr/bin/openssl rand -hex 32)\"}" >>/mnt/config/etc/remark42-config
   echo "#export SITE=\"${SITE}\"" | /command/s6-setuidgid guardian /usr/bin/tee -a /mnt/config/etc/remark42-config
   echo "#export AUTH_GITHUB_CID=" | /command/s6-setuidgid guardian /usr/bin/tee -a /mnt/config/etc/remark42-config
   echo "#export AUTH_GITHUB_CSEC=" | /command/s6-setuidgid guardian /usr/bin/tee -a /mnt/config/etc/remark42-config
@@ -41,8 +41,6 @@ fi
 if [[ -f /mnt/config/etc/remark42-config ]]; then
   . /mnt/config/etc/remark42-config
 fi
-
-# Populate Web Root
 
 if [[ ! -d /var/www/remark42-live ]]; then
   /bin/mkdir -p /var/www/remark42-live
@@ -69,8 +67,6 @@ if [[ -d /var/www/remark42-live ]]; then
   fi
   /command/s6-setuidgid guardian /usr/bin/find /var/www/remark42-live/ -regex '.*\.\(html\|js\|mjs\)$' -print -exec /bin/sed -i "s|{% REMARK_URL %}|${REMARK_URL}|g" {} \;
 fi
-
-# Run Daemon
 
 if [[ -n "${SECRET}" ]]; then
   exec /command/s6-setuidgid guardian /usr/bin/remark42 server --secret="${SECRET}" --url="${REMARK_URL}"

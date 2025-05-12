@@ -1,6 +1,7 @@
-# SPDX-FileCopyrightText: 2023 - 2025 Daniel Wolf <nephatrine@gmail.com>
-#
+# SPDX-FileCopyrightText: 2023-2025 Daniel Wolf <nephatrine@gmail.com>
 # SPDX-License-Identifier: ISC
+
+# hadolint global ignore=DL3007
 
 FROM code.nephatrine.net/nephnet/nxb-golang:latest AS builder
 
@@ -14,9 +15,6 @@ RUN pnpm build
 WORKDIR /root/remark42/backend
 RUN go build -o remark42 -ldflags "-X main.revision=${REMARK42_VERSION} -s -w" ./app
 
-# ------------------------------
-
-# hadolint ignore=DL3007
 FROM code.nephatrine.net/nephnet/alpine-s6:latest
 LABEL maintainer="Daniel Wolf <nephatrine@gmail.com>"
 
@@ -26,8 +24,7 @@ COPY --from=builder /root/remark42/backend/scripts/restore.sh /usr/local/bin/res
 COPY --from=builder /root/remark42/backend/scripts/import.sh /usr/local/bin/import-r42
 COPY --from=builder /root/remark42/frontend/apps/remark42/public/ /var/www/remark42/
 
-RUN sed -i 's~/srv/remark42~/usr/bin/remark42~g' /usr/local/bin/*r42 \
- && chmod -R +x /usr/local/bin/*r42
+RUN sed -i 's~/srv/remark42~/usr/bin/remark42~g' /usr/local/bin/*r42 && chmod -R +x /usr/local/bin/*r42
 
 COPY override /
 EXPOSE 8080/tcp
