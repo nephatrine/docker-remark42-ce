@@ -16,6 +16,9 @@ not super useful by itself, but can be called into from other containerized web
 applications to add a comments system or "guestbook" to static HTML pages, post
 templates, and the like.
 
+To secure this service, we suggest a separate reverse proxy server, such as
+[nephatrine/nginx-ssl](https://hub.docker.com/repository/docker/nephatrine/nginx-ssl/general).
+
 ## Supported Tags
 
 - `remark42-ce:1.14.0`: Remark42 1.14.0
