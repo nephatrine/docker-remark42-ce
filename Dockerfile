@@ -1,8 +1,7 @@
 # SPDX-FileCopyrightText: 2023-2025 Daniel Wolf <nephatrine@gmail.com>
 # SPDX-License-Identifier: ISC
 
-# hadolint global ignore=DL3007
-
+# hadolint ignore=DL3007
 FROM code.nephatrine.net/nephnet/nxb-golang:latest AS builder
 
 ARG REMARK42_VERSION=v1.14.0
@@ -15,6 +14,7 @@ RUN pnpm build
 WORKDIR /root/remark42/backend
 RUN go build -o remark42 -ldflags "-X main.revision=${REMARK42_VERSION} -s -w" ./app
 
+# hadolint ignore=DL3007
 FROM code.nephatrine.net/nephnet/alpine-s6:latest
 LABEL maintainer="Daniel Wolf <nephatrine@gmail.com>"
 
