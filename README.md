@@ -1,5 +1,5 @@
 <!--
-SPDX-FileCopyrightText: 2023-2025 Daniel Wolf <nephatrine@gmail.com>
+SPDX-FileCopyrightText: 2023-2026 Daniel Wolf <nephatrine@gmail.com>
 SPDX-License-Identifier: ISC
 -->
 
@@ -21,7 +21,7 @@ To secure this service, we suggest a separate reverse proxy server, such as
 
 ## Supported Tags
 
-- `remark42-ce:1.14.0`: Remark42 1.14.0
+- `remark42-ce:1.15.0`: Remark42 1.15.0
 
 ## Software
 

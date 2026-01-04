@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023-2025 Daniel Wolf <nephatrine@gmail.com>
+# SPDX-FileCopyrightText: 2023-2026 Daniel Wolf <nephatrine@gmail.com>
 # SPDX-License-Identifier: ISC
 
 name: Build Container Image
@@ -61,7 +61,7 @@ jobs:
           pull: true
           push: true
           file: Dockerfile
-          tags: code.nephatrine.net/nephnet/remark42-ce:1.14.0-${{matrix.nephhub}}
+          tags: code.nephatrine.net/nephnet/remark42-ce:1.15.0-${{matrix.nephhub}}
           cache-from: type=registry,ref=code.nephatrine.net/nephhub/${{matrix.nephhub}}-cache:remark42-ce
           cache-to: type=registry,image-manifest=true,oci-mediatypes=true,ref=code.nephatrine.net/nephhub/${{matrix.nephhub}}-cache:remark42-ce,mode=max
       - name: Notify Discord
@@ -108,9 +108,9 @@ jobs:
           password: ${{ secrets.DOCKER_PASS }}
       - name: Tag & Push
         run: |
-          docker pull code.nephatrine.net/nephnet/remark42-ce:1.14.0-${{matrix.nephhub}} --platform linux/${{matrix.platform}}
-          docker tag code.nephatrine.net/nephnet/remark42-ce:1.14.0-${{matrix.nephhub}} nephatrine/${{matrix.dockerhub}}:remark42-ce
-          docker rmi code.nephatrine.net/nephnet/remark42-ce:1.14.0-${{matrix.nephhub}}
+          docker pull code.nephatrine.net/nephnet/remark42-ce:1.15.0-${{matrix.nephhub}} --platform linux/${{matrix.platform}}
+          docker tag code.nephatrine.net/nephnet/remark42-ce:1.15.0-${{matrix.nephhub}} nephatrine/${{matrix.dockerhub}}:remark42-ce
+          docker rmi code.nephatrine.net/nephnet/remark42-ce:1.15.0-${{matrix.nephhub}}
           docker push nephatrine/${{matrix.dockerhub}}:remark42-ce
           docker rmi nephatrine/${{matrix.dockerhub}}:remark42-ce
       - name: Clean Up
@@ -149,16 +149,16 @@ jobs:
         continue-on-error: true
         id: manifest
         run: |
-          export IMAGELIST="--amend code.nephatrine.net/nephnet/remark42-ce:1.14.0-amd64 --amend code.nephatrine.net/nephnet/remark42-ce:1.14.0-ia32 --amend code.nephatrine.net/nephnet/remark42-ce:1.14.0-arm64 --amend code.nephatrine.net/nephnet/remark42-ce:1.14.0-arm32"
-          for manifestName in 1.14.0 1.14 1 latest; do docker manifest rm code.nephatrine.net/nephnet/remark42-ce:${manifestName} || true; docker manifest create code.nephatrine.net/nephnet/remark42-ce:${manifestName} ${IMAGELIST}; docker manifest push --purge code.nephatrine.net/nephnet/remark42-ce:${manifestName}; done
+          export IMAGELIST="--amend code.nephatrine.net/nephnet/remark42-ce:1.15.0-amd64 --amend code.nephatrine.net/nephnet/remark42-ce:1.15.0-ia32 --amend code.nephatrine.net/nephnet/remark42-ce:1.15.0-arm64 --amend code.nephatrine.net/nephnet/remark42-ce:1.15.0-arm32"
+          for manifestName in 1.15.0 1.15 1 latest; do docker manifest rm code.nephatrine.net/nephnet/remark42-ce:${manifestName} || true; docker manifest create code.nephatrine.net/nephnet/remark42-ce:${manifestName} ${IMAGELIST}; docker manifest push --purge code.nephatrine.net/nephnet/remark42-ce:${manifestName}; done
       - name: Wait to Retry
         if: steps.manifest.outcome != 'success'
         run: sleep 60
       - name: Retry Docker Manifest
         if: steps.manifest.outcome != 'success'
         run: |
-          export IMAGELIST="--amend code.nephatrine.net/nephnet/remark42-ce:1.14.0-amd64 --amend code.nephatrine.net/nephnet/remark42-ce:1.14.0-ia32 --amend code.nephatrine.net/nephnet/remark42-ce:1.14.0-arm64 --amend code.nephatrine.net/nephnet/remark42-ce:1.14.0-arm32"
-          for manifestName in 1.14.0 1.14 1 latest; do docker manifest rm code.nephatrine.net/nephnet/remark42-ce:${manifestName} || true; docker manifest create code.nephatrine.net/nephnet/remark42-ce:${manifestName} ${IMAGELIST}; docker manifest push --purge code.nephatrine.net/nephnet/remark42-ce:${manifestName}; done
+          export IMAGELIST="--amend code.nephatrine.net/nephnet/remark42-ce:1.15.0-amd64 --amend code.nephatrine.net/nephnet/remark42-ce:1.15.0-ia32 --amend code.nephatrine.net/nephnet/remark42-ce:1.15.0-arm64 --amend code.nephatrine.net/nephnet/remark42-ce:1.15.0-arm32"
+          for manifestName in 1.15.0 1.15 1 latest; do docker manifest rm code.nephatrine.net/nephnet/remark42-ce:${manifestName} || true; docker manifest create code.nephatrine.net/nephnet/remark42-ce:${manifestName} ${IMAGELIST}; docker manifest push --purge code.nephatrine.net/nephnet/remark42-ce:${manifestName}; done
       - name: Notify Discord
         uses: https://code.nephatrine.net/NephHub/actions-status-discord@v1
         if: failure()
@@ -191,7 +191,7 @@ jobs:
         id: manifest
         run: |
           export IMAGELIST="--amend nephatrine/amd64:remark42-ce --amend nephatrine/ia32:remark42-ce --amend nephatrine/arm64:remark42-ce --amend nephatrine/armv7:remark42-ce"
-          for manifestName in 1.14.0 1.14 1 latest; do docker manifest rm nephatrine/remark42-ce:${manifestName} || true; docker manifest create nephatrine/remark42-ce:${manifestName} ${IMAGELIST}; docker manifest push --purge nephatrine/remark42-ce:${manifestName}; done
+          for manifestName in 1.15.0 1.15 1 latest; do docker manifest rm nephatrine/remark42-ce:${manifestName} || true; docker manifest create nephatrine/remark42-ce:${manifestName} ${IMAGELIST}; docker manifest push --purge nephatrine/remark42-ce:${manifestName}; done
       - name: Wait to Retry
         if: steps.manifest.outcome != 'success'
         run: sleep 60
@@ -199,7 +199,7 @@ jobs:
         if: steps.manifest.outcome != 'success'
         run: |
           export IMAGELIST="--amend nephatrine/amd64:remark42-ce --amend nephatrine/ia32:remark42-ce --amend nephatrine/arm64:remark42-ce --amend nephatrine/armv7:remark42-ce"
-          for manifestName in 1.14.0 1.14 1 latest; do docker manifest rm nephatrine/remark42-ce:${manifestName} || true; docker manifest create nephatrine/remark42-ce:${manifestName} ${IMAGELIST}; docker manifest push --purge nephatrine/remark42-ce:${manifestName}; done
+          for manifestName in 1.15.0 1.15 1 latest; do docker manifest rm nephatrine/remark42-ce:${manifestName} || true; docker manifest create nephatrine/remark42-ce:${manifestName} ${IMAGELIST}; docker manifest push --purge nephatrine/remark42-ce:${manifestName}; done
       - name: Notify Discord
         uses: https://code.nephatrine.net/NephHub/actions-status-discord@v1
         if: failure()

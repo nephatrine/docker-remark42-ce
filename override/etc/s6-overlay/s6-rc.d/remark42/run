@@ -1,5 +1,5 @@
 #!/command/with-contenv /bin/sh
-# SPDX-FileCopyrightText: 2023-2025 Daniel Wolf <nephatrine@gmail.com>
+# SPDX-FileCopyrightText: 2023-2026 Daniel Wolf <nephatrine@gmail.com>
 # SPDX-License-Identifier: ISC
 
 # shellcheck shell=sh
@@ -17,25 +17,35 @@ export AVATAR_BOLT_FILE="${AVATAR_BOLT_FILE:-/mnt/config/data/avatars.db}"
 export IMAGE_FS_PATH="${IMAGE_FS_PATH:-/mnt/config/data/pictures}"
 export IMAGE_FS_STAGING="${IMAGE_FS_STAGING:-/mnt/config/data/pictures.staging}"
 export IMAGE_BOLT_FILE="${IMAGE_BOLT_FILE:-/mnt/config/data/pictures.db}"
+export EMOJI="${EMOJI:-true}"
 
 cd /mnt/config/home || exit 1
 
 if [ ! -d /mnt/config/etc ]; then
   /command/s6-setuidgid guardian /bin/mkdir -p /mnt/config/etc
 fi
-if [ ! -f /mnt/config/etc/remark42-config ] && [ -f /mnt/config/etc/remark42.sh ]; then
-  # TODO: Remove this at some point
-  /command/s6-setuidgid guardian /bin/mv /mnt/config/etc/remark42.sh /mnt/config/etc/remark42-config
-fi
 if [ ! -f /mnt/config/etc/remark42-config ] && [ -d /mnt/config/etc ]; then
   echo '#!/command/with-contenv /bin/bash' | /command/s6-setuidgid guardian /usr/bin/tee /mnt/config/etc/remark42-config
   echo "#export REMARK_URL=\"${REMARK_URL}\"" | /command/s6-setuidgid guardian /usr/bin/tee -a /mnt/config/etc/remark42-config
   echo "export SECRET=\${SECRET:-\"$(/usr/bin/openssl rand -hex 32)\"}" >>/mnt/config/etc/remark42-config
   echo "#export SITE=\"${SITE}\"" | /command/s6-setuidgid guardian /usr/bin/tee -a /mnt/config/etc/remark42-config
+  echo "#export AUTH_DISCORD_CID=" | /command/s6-setuidgid guardian /usr/bin/tee -a /mnt/config/etc/remark42-config
+  echo "#export AUTH_DISCORD_CSEC=" | /command/s6-setuidgid guardian /usr/bin/tee -a /mnt/config/etc/remark42-config
   echo "#export AUTH_GITHUB_CID=" | /command/s6-setuidgid guardian /usr/bin/tee -a /mnt/config/etc/remark42-config
   echo "#export AUTH_GITHUB_CSEC=" | /command/s6-setuidgid guardian /usr/bin/tee -a /mnt/config/etc/remark42-config
   echo "#export AUTH_GOOGLE_CID=" | /command/s6-setuidgid guardian /usr/bin/tee -a /mnt/config/etc/remark42-config
   echo "#export AUTH_GOOGLE_CSEC=" | /command/s6-setuidgid guardian /usr/bin/tee -a /mnt/config/etc/remark42-config
+  echo "#export NOTIFY_USERS=email" | /command/s6-setuidgid guardian /usr/bin/tee -a /mnt/config/etc/remark42-config
+  echo "#export NOTIFY_ADMINS=email" | /command/s6-setuidgid guardian /usr/bin/tee -a /mnt/config/etc/remark42-config
+  echo "#export ADMIN_SHARED_EMAIL=admin@example.com" | /command/s6-setuidgid guardian /usr/bin/tee -a /mnt/config/etc/remark42-config
+  echo "#export SMTP_HOST=smtp.gmail.com" | /command/s6-setuidgid guardian /usr/bin/tee -a /mnt/config/etc/remark42-config
+  echo "#export SMTP_PORT=465" | /command/s6-setuidgid guardian /usr/bin/tee -a /mnt/config/etc/remark42-config
+  echo "#export SMTP_TLS=true" | /command/s6-setuidgid guardian /usr/bin/tee -a /mnt/config/etc/remark42-config
+  echo "#export SMTP_USERNAME=example.user@gmail.com" | /command/s6-setuidgid guardian /usr/bin/tee -a /mnt/config/etc/remark42-config
+  echo "#export SMTP_PASSWORD=aaaa bbbb cccc dddd" | /command/s6-setuidgid guardian /usr/bin/tee -a /mnt/config/etc/remark42-config
+  echo "#export AUTH_EMAIL_FROM=\"Remark42 Login\"<example.user@gmail.com>" | /command/s6-setuidgid guardian /usr/bin/tee -a /mnt/config/etc/remark42-config
+  echo "#export NOTIFY_EMAIL_FROM=\"Remark42 Notifications\"<example.user@gmail.com>" | /command/s6-setuidgid guardian /usr/bin/tee -a /mnt/config/etc/remark42-config
+  echo "#export NOTIFY_EMAIL_VERIFICATION_SUBJ=\"E-Mail Verification\"" | /command/s6-setuidgid guardian /usr/bin/tee -a /mnt/config/etc/remark42-config
   /command/s6-setuidgid guardian /bin/chmod +x /mnt/config/etc/remark42-config
 fi
 if [ -f /mnt/config/etc/remark42-config ]; then

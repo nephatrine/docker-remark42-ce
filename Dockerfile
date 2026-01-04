@@ -4,11 +4,11 @@
 # hadolint ignore=DL3007
 FROM code.nephatrine.net/nephnet/nxb-golang:latest AS builder
 
-ARG REMARK42_VERSION=v1.14.0
+ARG REMARK42_VERSION=v1.15.0
 RUN git -C /root clone -b "$REMARK42_VERSION" --single-branch --depth=1 https://github.com/umputun/remark42.git
 
 WORKDIR /root/remark42/frontend
-RUN npm i -g pnpm@7 && pnpm i
+RUN npm i -g pnpm@8 && pnpm i
 WORKDIR /root/remark42/frontend/apps/remark42
 RUN pnpm build
 WORKDIR /root/remark42/backend
