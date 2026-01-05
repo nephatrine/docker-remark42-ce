@@ -75,7 +75,9 @@ if [ -d /var/www/remark42-live ]; then
     esac
     /command/s6-setuidgid guardian /usr/bin/find /var/www/remark42-live/ -regex '.*\.html$' -print -exec /bin/sed -i "s|site_id:\"[^\"]*\"|site_id:\"${single_site_id}\"|g" {} \;
   fi
-  /command/s6-setuidgid guardian /usr/bin/find /var/www/remark42-live/ -regex '.*\.\(html\|js\|mjs\)$' -print -exec /bin/sed -i "s|{% REMARK_URL %}|${REMARK_URL}|g" {} \;
+  /command/s6-setuidgid guardian /usr/bin/find /var/www/remark42-live/ -regex '.*\.html$' -print -exec /bin/sed -i "s|{% REMARK_URL %}|${REMARK_URL}|g" {} \;
+  /command/s6-setuidgid guardian /usr/bin/find /var/www/remark42-live/ -regex '.*\.js$' -print -exec /bin/sed -i "s|{% REMARK_URL %}|${REMARK_URL}|g" {} \;
+  /command/s6-setuidgid guardian /usr/bin/find /var/www/remark42-live/ -regex '.*\.mjs$' -print -exec /bin/sed -i "s|{% REMARK_URL %}|${REMARK_URL}|g" {} \;
 fi
 
 if [ -n "${SECRET}" ]; then
