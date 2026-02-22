@@ -5,11 +5,12 @@ SPDX-License-Identifier: ISC
 
 # Remark42 Comment Engine
 
-[![NephCode](https://img.shields.io/static/v1?label=Git&message=NephCode&color=teal)](https://code.nephatrine.net/NephNET/docker-remark42-ce)
-[![GitHub](https://img.shields.io/static/v1?label=Git&message=GitHub&color=teal)](https://github.com/nephatrine/docker-remark42-ce)
-[![Registry](https://img.shields.io/static/v1?label=OCI&message=NephCode&color=blue)](https://code.nephatrine.net/NephNET/-/packages/container/remark42-ce/latest)
-[![DockerHub](https://img.shields.io/static/v1?label=OCI&message=DockerHub&color=blue)](https://hub.docker.com/repository/docker/nephatrine/remark42-ce/general)
+[![Git: NephCode](https://img.shields.io/static/v1?label=Git&message=NephCode&color=teal)](https://code.nephatrine.net/NephNET/docker-remark42-ce)
+[![Git: GitHub](https://img.shields.io/static/v1?label=Git&message=GitHub&color=teal)](https://github.com/nephatrine/docker-remark42-ce)
+[![OCI: NephCode](https://img.shields.io/static/v1?label=OCI&message=NephCode&color=blue)](https://code.nephatrine.net/NephNET/-/packages/container/remark42-ce/latest)
+[![OCI: DockerHub](https://img.shields.io/static/v1?label=OCI&message=DockerHub&color=blue)](https://hub.docker.com/repository/docker/nephatrine/remark42-ce/general)
 [![unRAID](https://img.shields.io/static/v1?label=unRAID&message=template&color=orange)](https://code.nephatrine.net/NephNET/unraid-containers)
+[![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
 
 This is an Alpine-based container hosting the Remark42 comment engine. This is
 not super useful by itself, but can be called into from other containerized web
@@ -70,13 +71,13 @@ services:
       REMARK_URL: http://127.0.0.1:8080
       SITE: remark
     ports:
-      - "8080:8080/tcp"
+      - 8080:8080/tcp
     volumes:
       - /mnt/containers/remark42-ce:/mnt/config
 ```
 
 ### docker run
 
-```bash
+```sh
 docker run --rm -ti code.nephatrine.net/nephnet/remark42-ce:latest /bin/bash
 ```
