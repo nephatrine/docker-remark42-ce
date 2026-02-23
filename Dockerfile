@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023-2025 Daniel Wolf <nephatrine@gmail.com>
+# SPDX-FileCopyrightText: 2023-2026 Daniel Wolf <nephatrine@gmail.com>
 # SPDX-License-Identifier: ISC
 
 # hadolint ignore=DL3007
@@ -6,6 +6,9 @@ FROM code.nephatrine.net/nephnet/nxb-golang:latest AS builder
 
 ARG REMARK42_VERSION=v1.15.0
 RUN git -C /root clone -b "$REMARK42_VERSION" --single-branch --depth=1 https://github.com/umputun/remark42.git
+
+# Fix Firefox Rendering
+RUN sed -i 's~<base target~<meta name="color-scheme" content="light dark" />\n    <base target~g' /root/remark42/frontend/apps/remark42/templates/iframe.ejs
 
 WORKDIR /root/remark42/frontend
 RUN npm i -g pnpm@8 && pnpm i
