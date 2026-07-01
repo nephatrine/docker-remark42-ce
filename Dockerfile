@@ -4,7 +4,7 @@
 # hadolint ignore=DL3007
 FROM code.nephatrine.net/nephnet/nxb-golang:latest AS builder
 
-ARG REMARK42_VERSION=v1.15.0
+ARG REMARK42_VERSION=v1.16.1
 RUN git -C /root clone -b "$REMARK42_VERSION" --single-branch --depth=1 https://github.com/umputun/remark42.git
 
 # Fix Firefox Rendering

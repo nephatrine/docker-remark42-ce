@@ -22,7 +22,7 @@ To secure this service, we suggest a separate reverse proxy server, such as
 
 ## Supported Tags
 
-- `remark42-ce:1.15.0`: Remark42 1.15.0
+- `remark42-ce:1.16.1`: Remark42 1.16.1
 
 ## Software
 
