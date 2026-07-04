@@ -42,6 +42,10 @@ This is a bash script that will be sourced by the startup routine to include
 additional tweaks or setup you would like to perform. Modifications to these
 files will require a service restart to pull in the changes made.
 
+Rather than using the config file, you can also just pass environment variables
+to the Docker container. Remark supports a huge number of such options, however,
+and so it is generally easier to just chuck them into a file.
+
 You can place any additional web files here and they will be served, if present.
 It will require a service restart to pull in new or updated files, however.
 
